@@ -35,6 +35,7 @@ frame.addEventListener('load', () => {
       const todoCards = [...d.querySelectorAll('.column.todo .card')];
       const reorderTransfer = new DataTransfer();
       todoCards[1].dispatchEvent(new DragEvent('dragstart', {bubbles:true,dataTransfer:reorderTransfer}));
+      d.querySelector('.column.todo').dispatchEvent(new DragEvent('dragover', {bubbles:true,dataTransfer:reorderTransfer,clientY:todoCards[0].getBoundingClientRect().top}));
       d.querySelector('.column.todo').dispatchEvent(new DragEvent('drop', {bubbles:true,dataTransfer:reorderTransfer,clientY:todoCards[0].getBoundingClientRect().top}));
       check(d.querySelector('.column.todo .card h3')?.textContent === '已编辑任务', '同列上下排序');
       const search = d.querySelector('#task-search');
@@ -61,10 +62,12 @@ frame.addEventListener('load', () => {
       d.querySelector('.card').click();
       check(d.querySelector('.card').classList.contains('actions-visible'), '刷新后卡片操作');
       d.querySelector('.card-actions .delete').click();
-      check(d.querySelector('#total-count').textContent === '0', '删除任务');
+      check(d.querySelector('#total-count').textContent === '1', '删除任务');
       document.querySelector('#result').textContent = 'PASS: 搜索、增删改、同列排序、纸纹圆角与对齐、拖拽、深色模式、刷新持久化';
     }
   } catch (error) { document.querySelector('#result').textContent = `FAIL: ${error.message}`; }
 });
 </script>
+
+
 

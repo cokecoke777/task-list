@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>任务看板</title>
-  <link rel="stylesheet" href="./style.css?v=20260923-1" />
+  <link rel="stylesheet" href="./style.css?v=20260923-2" />
 </head>
 <body>
   <div class="app">
@@ -19,7 +19,8 @@
     </main>
   </div>
   <dialog id="task-dialog"><form id="task-form" method="dialog"><div class="dialog-head"><h2 id="dialog-title">新建任务</h2><button id="close-dialog" class="icon" type="button" aria-label="关闭">×</button></div><label>任务标题 <span class="required">*</span><input id="task-title" maxlength="100" required placeholder="例如：完成课堂实践演示" /></label><label>描述 <span class="optional">选填</span><textarea id="task-description" rows="4" maxlength="500" placeholder="补充任务内容"></textarea></label><div class="form-row"><label>状态<select id="task-status"><option value="todo">待办</option><option value="doing">进行中</option><option value="done">完成</option></select></label><label>优先级<select id="task-priority"><option value="medium">中</option><option value="high">高</option><option value="low">低</option></select></label></div><div class="dialog-actions"><button id="cancel-dialog" class="quiet" type="button">取消</button><button class="primary" type="submit">保存任务</button></div></form></dialog>
-  <script src="./script.js?v=20260923-1" defer></script>
+  <script src="./script.js?v=20260923-2" defer></script>
 </body>
 </html>
+
 

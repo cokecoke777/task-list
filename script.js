@@ -44,25 +44,24 @@ function setCardActions(id) {
     actions.querySelectorAll('button').forEach(button => { button.tabIndex = visible ? 0 : -1; });
   });
 }
-function getDropBeforeId(cards, clientY) {
+function getDropAfterElement(cards, clientY) {
   const candidates = [...cards.querySelectorAll('.card:not(.dragging)')];
-  const nextCard = candidates.find(card => clientY < card.getBoundingClientRect().top + card.offsetHeight / 2);
-  return nextCard?.dataset.id || null;
+  return candidates.reduce((closest, card) => {
+    const box = card.getBoundingClientRect();
+    const offset = clientY - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) return { offset, element: card };
+    return closest;
+  }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
 }
-function moveTask(id, status, beforeId = null) {
-  const fromIndex = tasks.findIndex(item => item.id === id);
-  if (fromIndex < 0 || beforeId === id) return false;
-  const [task] = tasks.splice(fromIndex, 1);
-  task.status = status;
-  if (beforeId) {
-    const beforeIndex = tasks.findIndex(item => item.id === beforeId);
-    if (beforeIndex >= 0) tasks.splice(beforeIndex, 0, task);
-    else tasks.push(task);
-  } else {
-    const lastIndex = tasks.reduce((found, item, index) => item.status === status ? index : found, -1);
-    tasks.splice(lastIndex + 1, 0, task);
-  }
-  return true;
+function syncTasksFromBoard() {
+  const ordered = [...board.querySelectorAll('.card')].map(card => ({ id: card.dataset.id, status: card.closest('.column').dataset.status }));
+  const placed = new Set(ordered.map(item => item.id));
+  const nextTasks = ordered.map(item => {
+    const task = tasks.find(candidate => candidate.id === item.id);
+    if (task) task.status = item.status;
+    return task;
+  }).filter(Boolean);
+  tasks = [...nextTasks, ...tasks.filter(task => !placed.has(task.id))];
 }
 function renderCard(task) {
   const card = document.createElement('article');
@@ -108,13 +107,21 @@ function render() {
     if (items.length) items.forEach(task => cards.append(renderCard(task)));
     else { const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = query ? '没有匹配的任务' : '拖动任务到这里'; cards.append(empty); }
     section.append(cards);
-    section.addEventListener('dragover', event => { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; section.classList.add('drag-over'); });
+    section.addEventListener('dragover', event => {
+      event.preventDefault(); event.dataTransfer.dropEffect = 'move'; section.classList.add('drag-over');
+      const dragging = document.querySelector('.card.dragging');
+      if (!dragging) return;
+      const afterElement = getDropAfterElement(cards, event.clientY);
+      if (afterElement) cards.insertBefore(dragging, afterElement);
+      else cards.append(dragging);
+    });
     section.addEventListener('dragleave', event => { if (!section.contains(event.relatedTarget)) section.classList.remove('drag-over'); });
     section.addEventListener('drop', event => {
       event.preventDefault(); section.classList.remove('drag-over');
-      const id = draggedId || event.dataTransfer.getData('text/plain');
-      const beforeId = getDropBeforeId(cards, event.clientY);
-      if (moveTask(id, column.id, beforeId)) { save(); render(); }
+      if (!draggedId) return;
+      const dragging = document.querySelector('.card.dragging');
+      if (dragging && !cards.contains(dragging)) cards.append(dragging);
+      syncTasksFromBoard(); save(); render();
     });
     board.append(section);
   }
@@ -152,4 +159,7 @@ function setTheme(theme) { document.body.classList.toggle('dark', theme === 'dar
 setTheme(localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light');
 themeButton.addEventListener('click', () => setTheme(document.body.classList.contains('dark') ? 'light' : 'dark'));
 render();
+
+
+
 
