@@ -44,6 +44,26 @@ function setCardActions(id) {
     actions.querySelectorAll('button').forEach(button => { button.tabIndex = visible ? 0 : -1; });
   });
 }
+function getDropBeforeId(cards, clientY) {
+  const candidates = [...cards.querySelectorAll('.card:not(.dragging)')];
+  const nextCard = candidates.find(card => clientY < card.getBoundingClientRect().top + card.offsetHeight / 2);
+  return nextCard?.dataset.id || null;
+}
+function moveTask(id, status, beforeId = null) {
+  const fromIndex = tasks.findIndex(item => item.id === id);
+  if (fromIndex < 0 || beforeId === id) return false;
+  const [task] = tasks.splice(fromIndex, 1);
+  task.status = status;
+  if (beforeId) {
+    const beforeIndex = tasks.findIndex(item => item.id === beforeId);
+    if (beforeIndex >= 0) tasks.splice(beforeIndex, 0, task);
+    else tasks.push(task);
+  } else {
+    const lastIndex = tasks.reduce((found, item, index) => item.status === status ? index : found, -1);
+    tasks.splice(lastIndex + 1, 0, task);
+  }
+  return true;
+}
 function renderCard(task) {
   const card = document.createElement('article');
   const priority = priorities[task.priority] ? task.priority : 'medium';
@@ -93,8 +113,8 @@ function render() {
     section.addEventListener('drop', event => {
       event.preventDefault(); section.classList.remove('drag-over');
       const id = draggedId || event.dataTransfer.getData('text/plain');
-      const task = tasks.find(item => item.id === id);
-      if (task && task.status !== column.id) { task.status = column.id; save(); render(); }
+      const beforeId = getDropBeforeId(cards, event.clientY);
+      if (moveTask(id, column.id, beforeId)) { save(); render(); }
     });
     board.append(section);
   }
@@ -132,3 +152,4 @@ function setTheme(theme) { document.body.classList.toggle('dark', theme === 'dar
 setTheme(localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light');
 themeButton.addEventListener('click', () => setTheme(document.body.classList.contains('dark') ? 'light' : 'dark'));
 render();
+
