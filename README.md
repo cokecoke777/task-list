@@ -4,9 +4,8 @@
 
 ## 在线访问
 
-GitHub Pages：<https://cokecoke777.github.io/Software-Engineering/>
+GitHub Pages：<https://cokecoke777.github.io/task-list/>
 
-GitHub 仓库：<https://github.com/cokecoke777/Software-Engineering>
 
 ## 主要功能
 
